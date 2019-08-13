@@ -144,3 +144,115 @@ TEST_CASE("Slot can be connected to multiple Signals") {
         REQUIRE_FALSE(slot.isConnectedTo(anotherSignal));
     }
 }
+
+TEST_CASE("Signal and Slot can be disconnected") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+
+    signal.connect(slot);
+    signal.disconnect(slot);
+
+    SECTION("Signal should have zero connections") {
+        REQUIRE(signal.connectionCount() == 0);
+    }
+
+    SECTION("Slot should have zero connections") {
+        REQUIRE(slot.connectionCount() == 0);
+    }
+
+    SECTION("Signal should not be connected to Slot") {
+        REQUIRE_FALSE(signal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should not be connected to Signal") {
+        REQUIRE_FALSE(slot.isConnectedTo(signal));
+    }
+}
+
+TEST_CASE("Signal can be disconnected from a single Slot") {
+    Signal<> signal;
+    Slot<> connectedSlot1([]() {});
+    Slot<> disconnectedSlot([]() {});
+    Slot<> connectedSlot2([]() {});
+
+    signal.connect(connectedSlot1);
+    signal.connect(disconnectedSlot);
+    signal.connect(connectedSlot2);
+
+    signal.disconnect(disconnectedSlot);
+
+    SECTION("Signal should have two connections") {
+        REQUIRE(signal.connectionCount() == 2);
+    }
+
+    SECTION("each Slot not disconnected should have a single connection") {
+        REQUIRE(connectedSlot1.connectionCount() == 1);
+        REQUIRE(connectedSlot2.connectionCount() == 1);
+    }
+
+    SECTION("the disconnected Slot should have zero connections") {
+        REQUIRE(disconnectedSlot.connectionCount() == 0);
+    }
+
+    SECTION("Signal should be connected to each Slot not disconnected") {
+        REQUIRE(signal.isConnectedTo(connectedSlot1));
+        REQUIRE(signal.isConnectedTo(connectedSlot2));
+    }
+
+    SECTION("Signal should not be connected to the disconnected Slot") {
+        REQUIRE_FALSE(signal.isConnectedTo(disconnectedSlot));
+    }
+
+    SECTION("each not disconnected Slot should be connected to Signal") {
+        REQUIRE(connectedSlot1.isConnectedTo(signal));
+        REQUIRE(connectedSlot2.isConnectedTo(signal));
+    }
+
+    SECTION("the disconnected Slot should not be connected to Signal") {
+        REQUIRE_FALSE(disconnectedSlot.isConnectedTo(signal));
+    }
+}
+
+TEST_CASE("Slot can be disconnected from a single Signal") {
+    Signal<> connectedSignal1;
+    Signal<> disconnectedSignal;
+    Signal<> connectedSignal2;
+    Slot<> slot([]() {});
+
+    connectedSignal1.connect(slot);
+    disconnectedSignal.connect(slot);
+    connectedSignal2.connect(slot);
+
+    disconnectedSignal.disconnect(slot);
+
+    SECTION("each Signal not disconnected should have a single connection") {
+        REQUIRE(connectedSignal1.connectionCount() == 1);
+        REQUIRE(connectedSignal2.connectionCount() == 1);
+    }
+
+    SECTION("the disconnected Signal should have zero connections") {
+        REQUIRE(disconnectedSignal.connectionCount() == 0);
+    }
+
+    SECTION("Slot should have a two connections") {
+        REQUIRE(slot.connectionCount() == 2);
+    }
+
+    SECTION("each Signal not disconnected should be connected to Slot") {
+        REQUIRE(connectedSignal1.isConnectedTo(slot));
+        REQUIRE(connectedSignal2.isConnectedTo(slot));
+    }
+
+    SECTION("the disconnected Signal should not be connected to Slot") {
+        REQUIRE_FALSE(disconnectedSignal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to each Signal not disconnected") {
+        REQUIRE(slot.isConnectedTo(connectedSignal1));
+        REQUIRE(slot.isConnectedTo(connectedSignal2));
+    }
+
+    SECTION("Slot should not be connected to the disconnected Signal") {
+        REQUIRE_FALSE(slot.isConnectedTo(disconnectedSignal));
+    }
+}
