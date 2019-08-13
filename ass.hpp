@@ -51,6 +51,10 @@ private:
         signals.push_back(&signal);
     }
 
+    void disconnectFrom(Signal<Args...> &signal) {
+        signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
+    }
+
 private:
 
     std::function<void(Args...)> callback;
@@ -74,6 +78,16 @@ public:
     void connect(Slot<Args...> &slot) {
         slots.push_back(&slot);
         slot.connectTo(*this);
+    }
+
+    /**
+     * Disconnects this Signal from the provided Slot if connected.
+     *
+     * @param slot Slot to disconnect this Signal from.
+     */
+    void disconnect(Slot<Args...> &slot) {
+        slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
+        slot.disconnectFrom(*this);
     }
 
     /**
