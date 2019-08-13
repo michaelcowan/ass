@@ -91,6 +91,16 @@ public:
     }
 
     /**
+     * Disconnects this Signal from all connected Slot.
+     */
+    void disconnectAll() {
+        for (auto * slot : slots) {
+            slot->disconnectFrom(*this);
+        }
+        slots.clear();
+    }
+
+    /**
      * Returns the number of connections for this Signal.
      *
      * @return Number of connections for this Signal.
