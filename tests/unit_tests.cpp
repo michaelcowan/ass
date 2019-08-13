@@ -291,3 +291,23 @@ TEST_CASE("Signal can disconnect from all Slots") {
         REQUIRE_FALSE(slot3.isConnectedTo(signal));
     }
 }
+
+TEST_CASE("Signal should disconnect when destructed") {
+    Slot<> slot([]() {});
+    {
+        Signal<> signal;
+        signal.connect(slot);
+    }
+
+    REQUIRE(slot.connectionCount() == 0);
+}
+
+TEST_CASE("Slot should disconnect when destructed") {
+    Signal<> signal;
+    {
+        Slot<> slot([]() {});
+        signal.connect(slot);
+    }
+
+    REQUIRE(signal.connectionCount() == 0);
+}
