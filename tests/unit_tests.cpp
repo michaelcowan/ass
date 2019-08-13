@@ -256,3 +256,38 @@ TEST_CASE("Slot can be disconnected from a single Signal") {
         REQUIRE_FALSE(slot.isConnectedTo(disconnectedSignal));
     }
 }
+
+TEST_CASE("Signal can disconnect from all Slots") {
+    Signal<> signal;
+    Slot<> slot1([]() {});
+    Slot<> slot2([]() {});
+    Slot<> slot3([]() {});
+
+    signal.connect(slot1);
+    signal.connect(slot2);
+    signal.connect(slot3);
+
+    signal.disconnectAll();
+
+    SECTION("Signal should have zero connections") {
+        REQUIRE(signal.connectionCount() == 0);
+    }
+
+    SECTION("each Slot should have zero connections") {
+        REQUIRE(slot1.connectionCount() == 0);
+        REQUIRE(slot2.connectionCount() == 0);
+        REQUIRE(slot3.connectionCount() == 0);
+    }
+
+    SECTION("Signal should not be connected to any of the Slots") {
+        REQUIRE_FALSE(signal.isConnectedTo(slot1));
+        REQUIRE_FALSE(signal.isConnectedTo(slot2));
+        REQUIRE_FALSE(signal.isConnectedTo(slot3));
+    }
+
+    SECTION("each Slot should not be connected to Signal") {
+        REQUIRE_FALSE(slot1.isConnectedTo(signal));
+        REQUIRE_FALSE(slot2.isConnectedTo(signal));
+        REQUIRE_FALSE(slot3.isConnectedTo(signal));
+    }
+}
