@@ -26,6 +26,10 @@ public:
     explicit Slot(std::function<void(Args...)> callback)
             : callback(std::move(callback)) {}
 
+    ~Slot() {
+        disconnectFromAll();
+    }
+
     /**
      * Returns the number of connections for this Slot.
      *
@@ -55,6 +59,13 @@ private:
         signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
     }
 
+    void disconnectFromAll() {
+        for (auto * signal : signals) {
+            signal->disconnectFrom(*this);
+        }
+        signals.clear();
+    }
+
 private:
 
     std::function<void(Args...)> callback;
@@ -66,9 +77,15 @@ private:
 template<typename... Args>
 class Signal final {
 
+    friend class Slot<Args...>;
+
 public:
 
     Signal() = default;
+
+    ~Signal() {
+        disconnectAll();
+    }
 
     /**
      * Connects this Signal to the provided Slot.
@@ -86,7 +103,7 @@ public:
      * @param slot Slot to disconnect this Signal from.
      */
     void disconnect(Slot<Args...> &slot) {
-        slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
+        disconnectFrom(slot);
         slot.disconnectFrom(*this);
     }
 
@@ -117,6 +134,12 @@ public:
      */
     bool isConnectedTo(const Slot<Args...> &slot) const {
         return std::find(slots.begin(), slots.end(), &slot) != slots.end();
+    }
+
+private:
+
+    void disconnectFrom(Slot<Args...> &slot) {
+        slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
     }
 
 private:
