@@ -1,0 +1,23 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - build-essential
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          packages:
+            - build-essential
+    - os: osx
+      compiler: clang
+
+script:
+  - cmake -H. -Bcmake-build-travis
+  - cmake --build cmake-build-travis
+  - cmake --build cmake-build-travis --target check
