@@ -471,3 +471,91 @@ TEST_CASE("Signal can be copy assigned after being previously connected") {
         REQUIRE_FALSE(copy.isConnectedTo(previousSlot));
     }
 }
+
+TEST_CASE("Slot can be copy assigned") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Slot<> copy = slot;
+
+    SECTION("Signal should have two connections") {
+        REQUIRE(signal.connectionCount() == 2);
+    }
+
+    SECTION("copied Slot should have a single connection") {
+        REQUIRE(copy.connectionCount() == 1);
+    }
+
+    SECTION("Slot should have a single connection") {
+        REQUIRE(slot.connectionCount() == 1);
+    }
+
+    SECTION("Signal should be connected to Slot") {
+        REQUIRE(signal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to Signal") {
+        REQUIRE(slot.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to copied Slot") {
+        REQUIRE(signal.isConnectedTo(copy));
+    }
+
+    SECTION("copied Slot should be connected to Signal") {
+        REQUIRE(copy.isConnectedTo(signal));
+    }
+}
+
+TEST_CASE("Slot can be copy assigned after being previously connected") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Slot<> copy([]() {});
+    Signal<> previousSignal;
+    previousSignal.connect(copy);
+
+    copy = slot;
+
+    SECTION("Signal should have two connections") {
+        REQUIRE(signal.connectionCount() == 2);
+    }
+
+    SECTION("copied Slot should have a single connection") {
+        REQUIRE(copy.connectionCount() == 1);
+    }
+
+    SECTION("Slot should have a single connection") {
+        REQUIRE(slot.connectionCount() == 1);
+    }
+
+    SECTION("previous Signal should have zero connections") {
+        REQUIRE(previousSignal.connectionCount() == 0);
+    }
+
+    SECTION("Signal should be connected to Slot") {
+        REQUIRE(signal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to Signal") {
+        REQUIRE(slot.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to copied Slot") {
+        REQUIRE(signal.isConnectedTo(copy));
+    }
+
+    SECTION("copied Slot should be connected to Signal") {
+        REQUIRE(copy.isConnectedTo(signal));
+    }
+
+    SECTION("previous Signal should not be connected to copied Slot") {
+        REQUIRE_FALSE(previousSignal.isConnectedTo(copy));
+    }
+
+    SECTION("copied Slot should not be connected to the previous Signal") {
+        REQUIRE_FALSE(copy.isConnectedTo(previousSignal));
+    }
+}
