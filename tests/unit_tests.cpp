@@ -49,6 +49,18 @@ TEST_CASE("Signal and Slot can be connected") {
 
         REQUIRE_FALSE(slot.isConnectedTo(anotherSignal));
     }
+
+    SECTION("Signal and Slot should only be able to connect once") {
+        signal.connect(slot);
+
+        SECTION("Signal should have a single connection") {
+            REQUIRE(signal.connectionCount() == 1);
+        }
+
+        SECTION("Slot should have a single connection") {
+            REQUIRE(slot.connectionCount() == 1);
+        }
+    }
 }
 
 TEST_CASE("Signal can be connected to multiple Slots") {

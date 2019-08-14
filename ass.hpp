@@ -132,13 +132,15 @@ public:
     };
 
     /**
-     * Connects this Signal to the provided Slot.
+     * Connects this Signal to the provided Slot unless already connected.
      *
      * @param slot Slot to connect this Signal to.
      */
     void connect(Slot<Args...> &slot) {
-        slots.push_back(&slot);
-        slot.connectTo(*this);
+        if (!isConnectedTo(slot)) {
+            slots.push_back(&slot);
+            slot.connectTo(*this);
+        }
     }
 
     /**
