@@ -347,3 +347,39 @@ TEST_CASE("Signal can be copy constructed") {
         REQUIRE(slot.isConnectedTo(copy));
     }
 }
+
+TEST_CASE("Slot can be copy constructed") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Slot<> copy(slot);
+
+    SECTION("Signal should have two connections") {
+        REQUIRE(signal.connectionCount() == 2);
+    }
+
+    SECTION("copied Slot should have a single connection") {
+        REQUIRE(copy.connectionCount() == 1);
+    }
+
+    SECTION("Slot should have a single connection") {
+        REQUIRE(slot.connectionCount() == 1);
+    }
+
+    SECTION("Signal should be connected to Slot") {
+        REQUIRE(signal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to Signal") {
+        REQUIRE(slot.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to copied Slot") {
+        REQUIRE(signal.isConnectedTo(copy));
+    }
+
+    SECTION("copied Slot should be connected to Signal") {
+        REQUIRE(copy.isConnectedTo(signal));
+    }
+}

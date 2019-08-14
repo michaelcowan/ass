@@ -31,6 +31,16 @@ public:
     }
 
     /**
+     * Copies all connections of other Slot to this Slot.
+     * @param other Slot to copy connections from.
+     */
+    Slot(const Slot &other) {
+        for (auto *signal : other.signals) {
+            signal->connect(*this);
+        }
+    }
+
+    /**
      * Returns the number of connections for this Slot.
      *
      * @return Number of connections for this Slot.
