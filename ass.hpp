@@ -102,10 +102,19 @@ public:
      * @param other Signal to copy connections from.
      */
     Signal(const Signal &other) {
-        for (auto *slot : other.slots) {
-            this->connect(*slot);
-        }
+        copyFrom(other);
     }
+
+    /**
+     * Replaces connections of this Signal with connections of other Signal.
+     * @param other Signal to copy connections from.
+     * @return Copy assigned instance.
+     */
+    Signal &operator=(const Signal &other) {
+        disconnectAll();
+        copyFrom(other);
+        return *this;
+    };
 
     /**
      * Connects this Signal to the provided Slot.
@@ -160,6 +169,12 @@ private:
 
     void disconnectFrom(Slot<Args...> &slot) {
         slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
+    }
+
+    void copyFrom(const Signal<Args...> &other) {
+        for (auto *slot : other.slots) {
+            this->connect(*slot);
+        }
     }
 
 private:
