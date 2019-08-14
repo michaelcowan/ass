@@ -1,6 +1,8 @@
 # Another Signal Slot
 > Signal/Slot implementation with a focus on automatic connection handling
 
+[![Build Status](https://travis-ci.org/michaelcowan/ass.svg?branch=master)](https://travis-ci.org/michaelcowan/ass)
+
 ## Usage Examples
 ### Observer Pattern Example
 ```cpp
