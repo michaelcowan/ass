@@ -311,3 +311,39 @@ TEST_CASE("Slot should disconnect when destructed") {
 
     REQUIRE(signal.connectionCount() == 0);
 }
+
+TEST_CASE("Signal can be copy constructed") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Signal<> copy(signal);
+
+    SECTION("Signal should have a single connection") {
+        REQUIRE(signal.connectionCount() == 1);
+    }
+
+    SECTION("copied Signal should have a single connection") {
+        REQUIRE(copy.connectionCount() == 1);
+    }
+
+    SECTION("Slot should have two connections") {
+        REQUIRE(slot.connectionCount() == 2);
+    }
+
+    SECTION("Signal should be connected to Slot") {
+        REQUIRE(signal.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to Signal") {
+        REQUIRE(slot.isConnectedTo(signal));
+    }
+
+    SECTION("copied Signal should be connected to Slot") {
+        REQUIRE(copy.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to copied Signal") {
+        REQUIRE(slot.isConnectedTo(copy));
+    }
+}
