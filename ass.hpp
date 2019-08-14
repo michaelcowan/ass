@@ -35,10 +35,19 @@ public:
      * @param other Slot to copy connections from.
      */
     Slot(const Slot &other) {
-        for (auto *signal : other.signals) {
-            signal->connect(*this);
-        }
+        copyFrom(other);
     }
+
+    /**
+     * Replaces connections of this Slot with connections of other Slot.
+     * @param other Slot to copy connections from.
+     * @return Copy assigned instance.
+     */
+    Slot &operator=(const Slot &other) {
+        disconnectFromAll();
+        copyFrom(other);
+        return *this;
+    };
 
     /**
      * Returns the number of connections for this Slot.
@@ -74,6 +83,12 @@ private:
             signal->disconnectFrom(*this);
         }
         signals.clear();
+    }
+
+    void copyFrom(const Slot<Args...> &other) {
+        for (auto *signal : other.signals) {
+            signal->connect(*this);
+        }
     }
 
 private:
