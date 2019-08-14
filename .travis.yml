@@ -16,6 +16,8 @@ matrix:
             - build-essential
     - os: osx
       compiler: clang
+    - os: windows
+      
 
 script:
   - cmake -H. -Bcmake-build-travis
