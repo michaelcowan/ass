@@ -60,7 +60,7 @@ private:
     }
 
     void disconnectFromAll() {
-        for (auto * signal : signals) {
+        for (auto *signal : signals) {
             signal->disconnectFrom(*this);
         }
         signals.clear();
@@ -88,6 +88,16 @@ public:
     }
 
     /**
+     * Copies all connections of other Signal to this Signal.
+     * @param other Signal to copy connections from.
+     */
+    Signal(const Signal &other) {
+        for (auto *slot : other.slots) {
+            this->connect(*slot);
+        }
+    }
+
+    /**
      * Connects this Signal to the provided Slot.
      *
      * @param slot Slot to connect this Signal to.
@@ -111,7 +121,7 @@ public:
      * Disconnects this Signal from all connected Slot.
      */
     void disconnectAll() {
-        for (auto * slot : slots) {
+        for (auto *slot : slots) {
             slot->disconnectFrom(*this);
         }
         slots.clear();
