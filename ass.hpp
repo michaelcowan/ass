@@ -50,6 +50,15 @@ public:
     };
 
     /**
+     * Copies all connections of other Slot to this Slot then disconnects other Slot.
+     * @param other Slot to copy connections from.
+     */
+    Slot(Slot &&other) noexcept {
+        copyFrom(other);
+        other.disconnectFromAll();
+    }
+
+    /**
      * Returns the number of connections for this Slot.
      *
      * @return Number of connections for this Slot.

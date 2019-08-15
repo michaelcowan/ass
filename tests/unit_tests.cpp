@@ -595,3 +595,27 @@ TEST_CASE("Signal can be move constructed") {
         REQUIRE(slot.isConnectedTo(moved));
     }
 }
+
+TEST_CASE("Slot can be move constructed") {
+    Slot<> slot([]() {});
+    Signal<> signal;
+    signal.connect(slot);
+
+    Slot<> moved(std::move(slot));
+
+    SECTION("moved Slot should have a single connection") {
+        REQUIRE(moved.connectionCount() == 1);
+    }
+
+    SECTION("Signal should have a single connection") {
+        REQUIRE(signal.connectionCount() == 1);
+    }
+
+    SECTION("moved Slot should be connected to Signal") {
+        REQUIRE(moved.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to moved Slot") {
+        REQUIRE(moved.isConnectedTo(signal));
+    }
+}
