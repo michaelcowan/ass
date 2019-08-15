@@ -27,7 +27,7 @@ public:
             : callback(std::move(callback)) {}
 
     ~Slot() {
-        disconnectFromAll();
+        disconnectAll();
     }
 
     /**
@@ -35,7 +35,7 @@ public:
      * @param other Slot to copy connections from.
      */
     Slot(const Slot &other) {
-        copyFrom(other);
+        copyConnectionsFrom(other);
     }
 
     /**
@@ -44,8 +44,8 @@ public:
      * @return Copy assigned instance.
      */
     Slot &operator=(const Slot &other) {
-        disconnectFromAll();
-        copyFrom(other);
+        disconnectAll();
+        copyConnectionsFrom(other);
         return *this;
     };
 
@@ -54,8 +54,8 @@ public:
      * @param other Slot to copy connections from.
      */
     Slot(Slot &&other) noexcept {
-        copyFrom(other);
-        other.disconnectFromAll();
+        copyConnectionsFrom(other);
+        other.disconnectAll();
     }
 
     /**
@@ -79,22 +79,22 @@ public:
 
 private:
 
-    void connectTo(Signal<Args...> &signal) {
+    void addSignal(Signal<Args...> &signal) {
         signals.push_back(&signal);
     }
 
-    void disconnectFrom(Signal<Args...> &signal) {
+    void removeSignal(Signal<Args...> &signal) {
         signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
     }
 
-    void disconnectFromAll() {
+    void disconnectAll() {
         for (auto *signal : signals) {
-            signal->disconnectFrom(*this);
+            signal->removeSlot(*this);
         }
         signals.clear();
     }
 
-    void copyFrom(const Slot<Args...> &other) {
+    void copyConnectionsFrom(const Slot<Args...> &other) {
         for (auto *signal : other.signals) {
             signal->connect(*this);
         }
@@ -126,7 +126,7 @@ public:
      * @param other Signal to copy connections from.
      */
     Signal(const Signal &other) {
-        copyFrom(other);
+        copyConnectionsFrom(other);
     }
 
     /**
@@ -136,7 +136,7 @@ public:
      */
     Signal &operator=(const Signal &other) {
         disconnectAll();
-        copyFrom(other);
+        copyConnectionsFrom(other);
         return *this;
     };
 
@@ -145,7 +145,7 @@ public:
      * @param other Signal to copy connections from.
      */
     Signal(Signal &&other) noexcept {
-        copyFrom(other);
+        copyConnectionsFrom(other);
         other.disconnectAll();
     }
 
@@ -157,7 +157,7 @@ public:
     void connect(Slot<Args...> &slot) {
         if (!isConnectedTo(slot)) {
             slots.push_back(&slot);
-            slot.connectTo(*this);
+            slot.addSignal(*this);
         }
     }
 
@@ -167,8 +167,8 @@ public:
      * @param slot Slot to disconnect this Signal from.
      */
     void disconnect(Slot<Args...> &slot) {
-        disconnectFrom(slot);
-        slot.disconnectFrom(*this);
+        this->removeSlot(slot);
+        slot.removeSignal(*this);
     }
 
     /**
@@ -176,7 +176,7 @@ public:
      */
     void disconnectAll() {
         for (auto *slot : slots) {
-            slot->disconnectFrom(*this);
+            slot->removeSignal(*this);
         }
         slots.clear();
     }
@@ -202,11 +202,11 @@ public:
 
 private:
 
-    void disconnectFrom(Slot<Args...> &slot) {
+    void removeSlot(Slot<Args...> &slot) {
         slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
     }
 
-    void copyFrom(const Signal<Args...> &other) {
+    void copyConnectionsFrom(const Signal<Args...> &other) {
         for (auto *slot : other.slots) {
             this->connect(*slot);
         }
