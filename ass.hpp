@@ -150,6 +150,19 @@ public:
     }
 
     /**
+     * Replaces connections of this Signal with connections of other Signal then disconnects other
+     * Signal.
+     * @param other Signal to copy connections from.
+     * @return Move assigned instance.
+     */
+    Signal &operator=(Signal &&other) noexcept {
+        disconnectAll();
+        copyConnectionsFrom(other);
+        other.disconnectAll();
+        return *this;
+    }
+
+    /**
      * Connects this Signal to the provided Slot unless already connected.
      *
      * @param slot Slot to connect this Signal to.
