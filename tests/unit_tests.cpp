@@ -571,3 +571,27 @@ TEST_CASE("Slot can be copy assigned after being previously connected") {
         REQUIRE_FALSE(copy.isConnectedTo(previousSignal));
     }
 }
+
+TEST_CASE("Signal can be move constructed") {
+    Slot<> slot([]() {});
+    Signal<> signal;
+    signal.connect(slot);
+
+    Signal<> moved(std::move(signal));
+
+    SECTION("moved Signal should have a single connection") {
+        REQUIRE(moved.connectionCount() == 1);
+    }
+
+    SECTION("Slot should have a single connection") {
+        REQUIRE(slot.connectionCount() == 1);
+    }
+
+    SECTION("moved Signal should be connected to Slot") {
+        REQUIRE(moved.isConnectedTo(slot));
+    }
+
+    SECTION("Slot should be connected to moved Signal") {
+        REQUIRE(slot.isConnectedTo(moved));
+    }
+}
