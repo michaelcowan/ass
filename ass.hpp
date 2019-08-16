@@ -59,6 +59,19 @@ public:
     }
 
     /**
+     * Replaces connections of this Slot with connections of other Slot then disconnects other
+     * Slot.
+     * @param other Slot to copy connections from.
+     * @return Move assigned instance.
+     */
+    Slot &operator=(Slot &&other) noexcept {
+        disconnectAll();
+        copyConnectionsFrom(other);
+        other.disconnectAll();
+        return *this;
+    }
+
+    /**
      * Returns the number of connections for this Slot.
      *
      * @return Number of connections for this Slot.
