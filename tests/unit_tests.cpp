@@ -685,3 +685,69 @@ TEST_CASE("Signal can be move assigned after being previously connected") {
         REQUIRE_FALSE(moved.isConnectedTo(previousSlot));
     }
 }
+
+TEST_CASE("Slot can be move assigned") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Slot<> moved([]() {});
+
+    moved = std::move(slot);
+
+    SECTION("moved Slot should have a single connection") {
+        REQUIRE(moved.connectionCount() == 1);
+    }
+
+    SECTION("Signal should have a single connection") {
+        REQUIRE(signal.connectionCount() == 1);
+    }
+
+    SECTION("moved Slot should be connected to Signal") {
+        REQUIRE(moved.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to moved Slot") {
+        REQUIRE(signal.isConnectedTo(moved));
+    }
+}
+
+TEST_CASE("Slot can be move assigned after being previously connected") {
+    Signal<> signal;
+    Slot<> slot([]() {});
+    signal.connect(slot);
+
+    Slot<> moved([]() {});
+    Signal<> previousSignal;
+    previousSignal.connect(moved);
+
+    moved = std::move(slot);
+
+    SECTION("moved Slot should have a single connection") {
+        REQUIRE(moved.connectionCount() == 1);
+    }
+
+    SECTION("Signal should have a single connection") {
+        REQUIRE(signal.connectionCount() == 1);
+    }
+
+    SECTION("previous Signal should have zero connections") {
+        REQUIRE(previousSignal.connectionCount() == 0);
+    }
+
+    SECTION("moved Slot should be connected to Signal") {
+        REQUIRE(moved.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should be connected to moved Slot") {
+        REQUIRE(signal.isConnectedTo(moved));
+    }
+
+    SECTION("previous Signal should not be connected to moved Slot") {
+        REQUIRE_FALSE(previousSignal.isConnectedTo(moved));
+    }
+
+    SECTION("moved Slot should not be connected to the previous Signal") {
+        REQUIRE_FALSE(moved.isConnectedTo(previousSignal));
+    }
+}
