@@ -753,3 +753,50 @@ TEST_CASE("Slot can be move assigned after being previously connected") {
         REQUIRE_FALSE(moved.isConnectedTo(previousSignal));
     }
 }
+
+TEST_CASE("Signal should call Slot function for each emit") {
+    int timesToEmit = GENERATE(1, 2, 3, 4, 5);
+
+    int called = 0;
+    Signal<> signal;
+    Slot<> slot([&]() { ++called; });
+
+    signal.connect(slot);
+
+    for (int i = 0; i < timesToEmit; i++) {
+        signal.emit();
+    }
+
+    REQUIRE(called == timesToEmit);
+}
+
+TEST_CASE("Signal should forward argument to Slot") {
+    std::string string;
+
+    Slot<std::string> slot([&](std::string s) {
+        string = std::move(s);
+    });
+
+    Signal<std::string> signal;
+    signal.connect(slot);
+    signal.emit("hello");
+
+    REQUIRE(string == "hello");
+}
+
+TEST_CASE("Signal should forward multiple arguments to Slot") {
+    std::string string;
+    int integer;
+
+    Slot<std::string, int> slot([&](std::string s, int i) {
+        string = std::move(s);
+        integer = i;
+    });
+
+    Signal<std::string, int> signal;
+    signal.connect(slot);
+    signal.emit("hello", 5);
+
+    REQUIRE(string == "hello");
+    REQUIRE(integer == 5);
+}

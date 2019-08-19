@@ -192,6 +192,16 @@ namespace ass {
         }
 
         /**
+         * Calls function(s) of the connected Slot(s).
+         * @param args Arguments to pass to the Slot functions.
+         */
+        void emit(Args... args) {
+            for (auto &slot : slots) {
+                slot->callback(std::forward<Args>(args)...);
+            }
+        }
+
+        /**
          * Connects this Signal to the provided Slot unless already connected.
          *
          * @param slot Slot to connect this Signal to.
