@@ -4,6 +4,8 @@
 
 #include "../ass.hpp"
 
+using namespace ass;
+
 TEST_CASE("a new Signal should have no connections") {
     Signal<> signal;
 

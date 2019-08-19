@@ -27,233 +27,237 @@
 #include <functional>
 #include <vector>
 
-template<typename... Args>
-class Signal;
+namespace ass {
 
-template<typename... Args>
-class Slot final {
+    template<typename... Args>
+    class Signal;
 
-    friend class Signal<Args...>;
+    template<typename... Args>
+    class Slot final {
 
-public:
+        friend class Signal<Args...>;
 
-    explicit Slot(std::function<void(Args...)> callback)
-            : callback(std::move(callback)) {}
+    public:
 
-    ~Slot() {
-        disconnectAll();
-    }
+        explicit Slot(std::function<void(Args...)> callback)
+                : callback(std::move(callback)) {}
 
-    /**
-     * Copies all connections of other Slot to this Slot.
-     * @param other Slot to copy connections from.
-     */
-    Slot(const Slot &other) {
-        copyConnectionsFrom(other);
-    }
+        ~Slot() {
+            disconnectAll();
+        }
 
-    /**
-     * Replaces connections of this Slot with connections of other Slot.
-     * @param other Slot to copy connections from.
-     * @return Copy assigned instance.
-     */
-    Slot &operator=(const Slot &other) {
-        disconnectAll();
-        copyConnectionsFrom(other);
-        return *this;
+        /**
+         * Copies all connections of other Slot to this Slot.
+         * @param other Slot to copy connections from.
+         */
+        Slot(const Slot &other) {
+            copyConnectionsFrom(other);
+        }
+
+        /**
+         * Replaces connections of this Slot with connections of other Slot.
+         * @param other Slot to copy connections from.
+         * @return Copy assigned instance.
+         */
+        Slot &operator=(const Slot &other) {
+            disconnectAll();
+            copyConnectionsFrom(other);
+            return *this;
+        };
+
+        /**
+         * Copies all connections of other Slot to this Slot then disconnects other Slot.
+         * @param other Slot to copy connections from.
+         */
+        Slot(Slot &&other) noexcept {
+            copyConnectionsFrom(other);
+            other.disconnectAll();
+        }
+
+        /**
+         * Replaces connections of this Slot with connections of other Slot then disconnects other
+         * Slot.
+         * @param other Slot to copy connections from.
+         * @return Move assigned instance.
+         */
+        Slot &operator=(Slot &&other) noexcept {
+            disconnectAll();
+            copyConnectionsFrom(other);
+            other.disconnectAll();
+            return *this;
+        }
+
+        /**
+         * Returns the number of connections for this Slot.
+         *
+         * @return Number of connections for this Slot.
+         */
+        int connectionCount() const {
+            return signals.size();
+        }
+
+        /**
+         * Returns true if this Slot is connected to the provided Signal.
+         *
+         * @param signal Signal to test connection against.
+         * @return true if connected.
+         */
+        bool isConnectedTo(const Signal<Args...> &signal) const {
+            return std::find(signals.begin(), signals.end(), &signal) != signals.end();
+        }
+
+    private:
+
+        void addSignal(Signal<Args...> &signal) {
+            signals.push_back(&signal);
+        }
+
+        void removeSignal(Signal<Args...> &signal) {
+            signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
+        }
+
+        void disconnectAll() {
+            for (auto *signal : signals) {
+                signal->removeSlot(*this);
+            }
+            signals.clear();
+        }
+
+        void copyConnectionsFrom(const Slot<Args...> &other) {
+            for (auto *signal : other.signals) {
+                signal->connect(*this);
+            }
+        }
+
+    private:
+
+        std::function<void(Args...)> callback;
+
+        std::vector<Signal<Args...> *> signals;
+
     };
 
-    /**
-     * Copies all connections of other Slot to this Slot then disconnects other Slot.
-     * @param other Slot to copy connections from.
-     */
-    Slot(Slot &&other) noexcept {
-        copyConnectionsFrom(other);
-        other.disconnectAll();
-    }
+    template<typename... Args>
+    class Signal final {
 
-    /**
-     * Replaces connections of this Slot with connections of other Slot then disconnects other
-     * Slot.
-     * @param other Slot to copy connections from.
-     * @return Move assigned instance.
-     */
-    Slot &operator=(Slot &&other) noexcept {
-        disconnectAll();
-        copyConnectionsFrom(other);
-        other.disconnectAll();
-        return *this;
-    }
+        friend class Slot<Args...>;
 
-    /**
-     * Returns the number of connections for this Slot.
-     *
-     * @return Number of connections for this Slot.
-     */
-    int connectionCount() const {
-        return signals.size();
-    }
+    public:
 
-    /**
-     * Returns true if this Slot is connected to the provided Signal.
-     *
-     * @param signal Signal to test connection against.
-     * @return true if connected.
-     */
-    bool isConnectedTo(const Signal<Args...> &signal) const {
-        return std::find(signals.begin(), signals.end(), &signal) != signals.end();
-    }
+        Signal() = default;
 
-private:
-
-    void addSignal(Signal<Args...> &signal) {
-        signals.push_back(&signal);
-    }
-
-    void removeSignal(Signal<Args...> &signal) {
-        signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
-    }
-
-    void disconnectAll() {
-        for (auto *signal : signals) {
-            signal->removeSlot(*this);
+        ~Signal() {
+            disconnectAll();
         }
-        signals.clear();
-    }
 
-    void copyConnectionsFrom(const Slot<Args...> &other) {
-        for (auto *signal : other.signals) {
-            signal->connect(*this);
+        /**
+         * Copies all connections of other Signal to this Signal.
+         * @param other Signal to copy connections from.
+         */
+        Signal(const Signal &other) {
+            copyConnectionsFrom(other);
         }
-    }
 
-private:
+        /**
+         * Replaces connections of this Signal with connections of other Signal.
+         * @param other Signal to copy connections from.
+         * @return Copy assigned instance.
+         */
+        Signal &operator=(const Signal &other) {
+            disconnectAll();
+            copyConnectionsFrom(other);
+            return *this;
+        };
 
-    std::function<void(Args...)> callback;
+        /**
+         * Copies all connections of other Signal to this Signal then disconnects other Signal.
+         * @param other Signal to copy connections from.
+         */
+        Signal(Signal &&other) noexcept {
+            copyConnectionsFrom(other);
+            other.disconnectAll();
+        }
 
-    std::vector<Signal<Args...> *> signals;
+        /**
+         * Replaces connections of this Signal with connections of other Signal then disconnects other
+         * Signal.
+         * @param other Signal to copy connections from.
+         * @return Move assigned instance.
+         */
+        Signal &operator=(Signal &&other) noexcept {
+            disconnectAll();
+            copyConnectionsFrom(other);
+            other.disconnectAll();
+            return *this;
+        }
 
-};
+        /**
+         * Connects this Signal to the provided Slot unless already connected.
+         *
+         * @param slot Slot to connect this Signal to.
+         */
+        void connect(Slot<Args...> &slot) {
+            if (!isConnectedTo(slot)) {
+                slots.push_back(&slot);
+                slot.addSignal(*this);
+            }
+        }
 
-template<typename... Args>
-class Signal final {
+        /**
+         * Disconnects this Signal from the provided Slot if connected.
+         *
+         * @param slot Slot to disconnect this Signal from.
+         */
+        void disconnect(Slot<Args...> &slot) {
+            this->removeSlot(slot);
+            slot.removeSignal(*this);
+        }
 
-    friend class Slot<Args...>;
+        /**
+         * Disconnects this Signal from all connected Slot.
+         */
+        void disconnectAll() {
+            for (auto *slot : slots) {
+                slot->removeSignal(*this);
+            }
+            slots.clear();
+        }
 
-public:
+        /**
+         * Returns the number of connections for this Signal.
+         *
+         * @return Number of connections for this Signal.
+         */
+        int connectionCount() const {
+            return slots.size();
+        }
 
-    Signal() = default;
+        /**
+         * Returns true if this Signal is connected to the provided Slot.
+         *
+         * @param slot Slot to test connection against.
+         * @return true if connected.
+         */
+        bool isConnectedTo(const Slot<Args...> &slot) const {
+            return std::find(slots.begin(), slots.end(), &slot) != slots.end();
+        }
 
-    ~Signal() {
-        disconnectAll();
-    }
+    private:
 
-    /**
-     * Copies all connections of other Signal to this Signal.
-     * @param other Signal to copy connections from.
-     */
-    Signal(const Signal &other) {
-        copyConnectionsFrom(other);
-    }
+        void removeSlot(Slot<Args...> &slot) {
+            slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
+        }
 
-    /**
-     * Replaces connections of this Signal with connections of other Signal.
-     * @param other Signal to copy connections from.
-     * @return Copy assigned instance.
-     */
-    Signal &operator=(const Signal &other) {
-        disconnectAll();
-        copyConnectionsFrom(other);
-        return *this;
+        void copyConnectionsFrom(const Signal<Args...> &other) {
+            for (auto *slot : other.slots) {
+                this->connect(*slot);
+            }
+        }
+
+    private:
+
+        std::vector<Slot<Args...> *> slots;
+
     };
 
-    /**
-     * Copies all connections of other Signal to this Signal then disconnects other Signal.
-     * @param other Signal to copy connections from.
-     */
-    Signal(Signal &&other) noexcept {
-        copyConnectionsFrom(other);
-        other.disconnectAll();
-    }
-
-    /**
-     * Replaces connections of this Signal with connections of other Signal then disconnects other
-     * Signal.
-     * @param other Signal to copy connections from.
-     * @return Move assigned instance.
-     */
-    Signal &operator=(Signal &&other) noexcept {
-        disconnectAll();
-        copyConnectionsFrom(other);
-        other.disconnectAll();
-        return *this;
-    }
-
-    /**
-     * Connects this Signal to the provided Slot unless already connected.
-     *
-     * @param slot Slot to connect this Signal to.
-     */
-    void connect(Slot<Args...> &slot) {
-        if (!isConnectedTo(slot)) {
-            slots.push_back(&slot);
-            slot.addSignal(*this);
-        }
-    }
-
-    /**
-     * Disconnects this Signal from the provided Slot if connected.
-     *
-     * @param slot Slot to disconnect this Signal from.
-     */
-    void disconnect(Slot<Args...> &slot) {
-        this->removeSlot(slot);
-        slot.removeSignal(*this);
-    }
-
-    /**
-     * Disconnects this Signal from all connected Slot.
-     */
-    void disconnectAll() {
-        for (auto *slot : slots) {
-            slot->removeSignal(*this);
-        }
-        slots.clear();
-    }
-
-    /**
-     * Returns the number of connections for this Signal.
-     *
-     * @return Number of connections for this Signal.
-     */
-    int connectionCount() const {
-        return slots.size();
-    }
-
-    /**
-     * Returns true if this Signal is connected to the provided Slot.
-     *
-     * @param slot Slot to test connection against.
-     * @return true if connected.
-     */
-    bool isConnectedTo(const Slot<Args...> &slot) const {
-        return std::find(slots.begin(), slots.end(), &slot) != slots.end();
-    }
-
-private:
-
-    void removeSlot(Slot<Args...> &slot) {
-        slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
-    }
-
-    void copyConnectionsFrom(const Signal<Args...> &other) {
-        for (auto *slot : other.slots) {
-            this->connect(*slot);
-        }
-    }
-
-private:
-
-    std::vector<Slot<Args...> *> slots;
-
-};
+}
