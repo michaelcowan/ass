@@ -845,6 +845,36 @@ TEST_CASE("Signal should forward multiple arguments to Slot") {
     REQUIRE(integer == 5);
 }
 
+TEST_CASE("Slot can be const") {
+    CountingCallable callable;
+    Signal<> signal;
+    const Slot<> slot(callable);
+
+    SECTION("Slot should be able to connect to Signal") {
+        signal.connect(slot);
+        REQUIRE(slot.isConnectedTo(signal));
+        REQUIRE(slot.connectionCount() == 1);
+        REQUIRE(signal.isConnectedTo(slot));
+        REQUIRE(signal.connectionCount() == 1);
+    }
+
+    SECTION("Slot should be able to connect to Signal and be called") {
+        signal.connect(slot);
+        signal.emit();
+
+        REQUIRE(callable.count() == 1);
+    }
+
+    SECTION("Slot should be able to disconnect from Signal") {
+        signal.connect(slot);
+        signal.disconnect(slot);
+        REQUIRE_FALSE(slot.isConnectedTo(signal));
+        REQUIRE(slot.connectionCount() == 0);
+        REQUIRE_FALSE(signal.isConnectedTo(slot));
+        REQUIRE(signal.connectionCount() == 0);
+    }
+}
+
 TEST_CASE("Slot can callback on an instance function") {
     class Triggerable {
     public:

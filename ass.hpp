@@ -118,11 +118,11 @@ namespace ass {
 
     private:
 
-        void addSignal(Signal<Args...> &signal) {
+        void addSignal(Signal<Args...> &signal) const {
             signals.push_back(&signal);
         }
 
-        void removeSignal(Signal<Args...> &signal) {
+        void removeSignal(Signal<Args...> &signal) const {
             signals.erase(std::remove(signals.begin(), signals.end(), &signal), signals.end());
         }
 
@@ -143,7 +143,7 @@ namespace ass {
 
         std::function<void(Args...)> callback;
 
-        std::vector<Signal<Args...> *> signals;
+        mutable std::vector<Signal<Args...> *> signals;
 
     };
 
@@ -216,7 +216,7 @@ namespace ass {
          *
          * @param slot Slot to connect this Signal to.
          */
-        void connect(Slot<Args...> &slot) {
+        void connect(const Slot<Args...> &slot) {
             if (!isConnectedTo(slot)) {
                 slots.push_back(&slot);
                 slot.addSignal(*this);
@@ -228,7 +228,7 @@ namespace ass {
          *
          * @param slot Slot to disconnect this Signal from.
          */
-        void disconnect(Slot<Args...> &slot) {
+        void disconnect(const Slot<Args...> &slot) {
             this->removeSlot(slot);
             slot.removeSignal(*this);
         }
@@ -264,7 +264,7 @@ namespace ass {
 
     private:
 
-        void removeSlot(Slot<Args...> &slot) {
+        void removeSlot(const Slot<Args...> &slot) {
             slots.erase(std::remove(slots.begin(), slots.end(), &slot), slots.end());
         }
 
@@ -276,7 +276,7 @@ namespace ass {
 
     private:
 
-        std::vector<Slot<Args...> *> slots;
+        std::vector<const Slot<Args...> *> slots;
 
     };
 
