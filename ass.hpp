@@ -24,6 +24,9 @@
 
 #pragma once
 
+#include <functional>
+#include <vector>
+
 template<typename... Args>
 class Signal;
 
