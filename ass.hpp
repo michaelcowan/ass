@@ -207,8 +207,12 @@ namespace ass {
          * @param args Arguments to pass to the Slot functions.
          */
         void emit(Args... args) {
-            for (auto *slot : slots) {
-                slot->callback(std::forward<Args>(args)...);
+            if (!emitting) {
+                emitting = true;
+                for (auto *slot : slots) {
+                    slot->callback(std::forward<Args>(args)...);
+                }
+                emitting = false;
             }
         }
 
@@ -278,6 +282,8 @@ namespace ass {
     private:
 
         std::vector<const Slot<Args...> *> slots;
+
+        bool emitting = false;
 
     };
 

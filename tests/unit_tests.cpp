@@ -914,3 +914,19 @@ TEST_CASE("Slot can callback on a class function") {
 
     REQUIRE(count == 5);
 }
+
+TEST_CASE("Emit should by recursive safe") {
+    int count = 0;
+    Signal<> signal;
+
+    Slot<> slot([&]() {
+        signal.emit();
+        ++count;
+    });
+
+    signal.connect(slot);
+
+    signal.emit();
+
+    REQUIRE(count == 1);
+}
