@@ -206,7 +206,7 @@ namespace ass {
          * @param args Arguments to pass to the Slot functions.
          */
         void emit(Args... args) {
-            for (auto &slot : slots) {
+            for (auto *slot : slots) {
                 slot->callback(std::forward<Args>(args)...);
             }
         }
