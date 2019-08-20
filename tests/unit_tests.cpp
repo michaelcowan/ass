@@ -6,6 +6,25 @@
 
 using namespace ass;
 
+class CountingCallable {
+public:
+
+    CountingCallable() : m_count(0), func([&]() { ++m_count; }) {};
+
+    void operator()() {
+        func();
+    }
+
+    int count() const {
+        return m_count;
+    }
+
+private:
+
+    std::function<void()> func;
+    int m_count;
+};
+
 TEST_CASE("a new Signal should have no connections") {
     Signal<> signal;
 
@@ -363,8 +382,9 @@ TEST_CASE("Signal can be copy constructed") {
 }
 
 TEST_CASE("Slot can be copy constructed") {
+    CountingCallable callable;
     Signal<> signal;
-    Slot<> slot([]() {});
+    Slot<> slot(callable);
     signal.connect(slot);
 
     Slot<> copy(slot);
@@ -395,6 +415,11 @@ TEST_CASE("Slot can be copy constructed") {
 
     SECTION("copied Slot should be connected to Signal") {
         REQUIRE(copy.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should call Slot and copied Slot") {
+        signal.emit();
+        REQUIRE(callable.count() == 2);
     }
 }
 
@@ -488,8 +513,9 @@ TEST_CASE("Signal can be copy assigned after being previously connected") {
 }
 
 TEST_CASE("Slot can be copy assigned") {
+    CountingCallable callable;
     Signal<> signal;
-    Slot<> slot([]() {});
+    Slot<> slot(callable);
     signal.connect(slot);
 
     Slot<> copy;
@@ -521,6 +547,11 @@ TEST_CASE("Slot can be copy assigned") {
 
     SECTION("copied Slot should be connected to Signal") {
         REQUIRE(copy.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should call Slot and copied Slot") {
+        signal.emit();
+        REQUIRE(callable.count() == 2);
     }
 }
 
@@ -601,7 +632,8 @@ TEST_CASE("Signal can be move constructed") {
 }
 
 TEST_CASE("Slot can be move constructed") {
-    Slot<> slot([]() {});
+    CountingCallable callable;
+    Slot<> slot(callable);
     Signal<> signal;
     signal.connect(slot);
 
@@ -621,6 +653,11 @@ TEST_CASE("Slot can be move constructed") {
 
     SECTION("Signal should be connected to moved Slot") {
         REQUIRE(moved.isConnectedTo(signal));
+    }
+
+    SECTION("Signal should call only moved Slot") {
+        signal.emit();
+        REQUIRE(callable.count() == 1);
     }
 }
 
@@ -691,12 +728,12 @@ TEST_CASE("Signal can be move assigned after being previously connected") {
 }
 
 TEST_CASE("Slot can be move assigned") {
+    CountingCallable callable;
     Signal<> signal;
-    Slot<> slot([]() {});
+    Slot<> slot(callable);
     signal.connect(slot);
 
-    Slot<> moved([]() {});
-
+    Slot<> moved;
     moved = std::move(slot);
 
     SECTION("moved Slot should have a single connection") {
@@ -713,6 +750,11 @@ TEST_CASE("Slot can be move assigned") {
 
     SECTION("Signal should be connected to moved Slot") {
         REQUIRE(signal.isConnectedTo(moved));
+    }
+
+    SECTION("Signal should call only moved Slot") {
+        signal.emit();
+        REQUIRE(callable.count() == 1);
     }
 }
 

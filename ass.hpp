@@ -54,6 +54,7 @@ namespace ass {
          */
         Slot(const Slot &other) {
             copyConnectionsFrom(other);
+            this->callback = other.callback;
         }
 
         /**
@@ -64,6 +65,7 @@ namespace ass {
         Slot &operator=(const Slot &other) {
             disconnectAll();
             copyConnectionsFrom(other);
+            this->callback = other.callback;
             return *this;
         };
 
@@ -74,6 +76,7 @@ namespace ass {
         Slot(Slot &&other) noexcept {
             copyConnectionsFrom(other);
             other.disconnectAll();
+            std::swap(this->callback, other.callback);
         }
 
         /**
@@ -86,6 +89,7 @@ namespace ass {
             disconnectAll();
             copyConnectionsFrom(other);
             other.disconnectAll();
+            std::swap(this->callback, other.callback);
             return *this;
         }
 
