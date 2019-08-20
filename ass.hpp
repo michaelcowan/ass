@@ -44,6 +44,10 @@ namespace ass {
         explicit Slot(std::function<void(Args...)> callback)
                 : callback(std::move(callback)) {}
 
+        template<typename T>
+        Slot(T *instance, void (T::*function)(Args...))
+                : Slot([=](Args... args) { (instance->*function)(args...); }) {}
+
         ~Slot() {
             disconnectAll();
         }

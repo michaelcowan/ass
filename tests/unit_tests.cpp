@@ -844,3 +844,43 @@ TEST_CASE("Signal should forward multiple arguments to Slot") {
     REQUIRE(string == "hello");
     REQUIRE(integer == 5);
 }
+
+TEST_CASE("Slot can callback on an instance function") {
+    class Triggerable {
+    public:
+        int count = 0;
+
+        void trigger(int n) {
+            count += n;
+        }
+    } triggerable;
+
+    Slot<int> slot(&triggerable, &Triggerable::trigger);
+
+    Signal<int> signal;
+    signal.connect(slot);
+
+    signal.emit(10);
+
+    REQUIRE(triggerable.count == 10);
+}
+
+TEST_CASE("Slot can callback on a class function") {
+    static int count = 0;
+
+    class Triggerable {
+    public:
+        static void trigger(int n) {
+            count += n;
+        }
+    };
+
+    Slot<int> slot(&Triggerable::trigger);
+
+    Signal<int> signal;
+    signal.connect(slot);
+
+    signal.emit(5);
+
+    REQUIRE(count == 5);
+}
