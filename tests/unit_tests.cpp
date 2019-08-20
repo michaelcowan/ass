@@ -403,7 +403,8 @@ TEST_CASE("Signal can be copy assigned") {
     Slot<> slot([]() {});
     signal.connect(slot);
 
-    Signal<> copy = signal;
+    Signal<> copy;
+    copy = signal;
 
     SECTION("Signal should have a single connection") {
         REQUIRE(signal.connectionCount() == 1);
@@ -491,7 +492,8 @@ TEST_CASE("Slot can be copy assigned") {
     Slot<> slot([]() {});
     signal.connect(slot);
 
-    Slot<> copy = slot;
+    Slot<> copy;
+    copy = slot;
 
     SECTION("Signal should have two connections") {
         REQUIRE(signal.connectionCount() == 2);

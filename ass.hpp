@@ -39,6 +39,8 @@ namespace ass {
 
     public:
 
+        Slot() = default;
+
         explicit Slot(std::function<void(Args...)> callback)
                 : callback(std::move(callback)) {}
 
