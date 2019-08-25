@@ -25,6 +25,30 @@ private:
     int m_count;
 };
 
+class TestableSlotOwner {
+public:
+
+    MemberSlot<TestableSlotOwner> trigger =
+            MemberSlot<TestableSlotOwner>(this, &TestableSlotOwner::callback);
+
+    TestableSlotOwner() {
+        callbacks.clear();
+    }
+
+    static void requireCallbacks(const std::vector<TestableSlotOwner *> &required) {
+        REQUIRE(callbacks == required);
+    }
+
+    static std::vector<TestableSlotOwner *> callbacks;
+
+private:
+    void callback() {
+        callbacks.push_back(this);
+    }
+};
+
+std::vector<TestableSlotOwner *> TestableSlotOwner::callbacks;
+
 TEST_CASE("a new Signal should have no connections") {
     Signal<> signal;
 
@@ -913,4 +937,68 @@ TEST_CASE("Slot can callback on a class function") {
     signal.emit(5);
 
     REQUIRE(count == 5);
+}
+
+TEST_CASE("Class exposing MemberSlot should receive callback to its instance") {
+    TestableSlotOwner testable;
+    Signal<> signal;
+    signal.connect(testable.trigger);
+
+    signal.emit();
+
+    TestableSlotOwner::requireCallbacks({&testable});
+}
+
+TEST_CASE("Copy constructing class exposing MemberSlot should update callback to new instance") {
+    TestableSlotOwner testable;
+
+    Signal<> signal;
+    signal.connect(testable.trigger);
+
+    TestableSlotOwner copied(testable);
+
+    signal.emit();
+
+    TestableSlotOwner::requireCallbacks({&testable, &copied});
+}
+
+TEST_CASE("Copy assigning class exposing MemberSlot should update callback to new instance") {
+    TestableSlotOwner testable;
+
+    Signal<> signal;
+    signal.connect(testable.trigger);
+
+    TestableSlotOwner copied;
+    copied = testable;
+
+    signal.emit();
+
+    TestableSlotOwner::requireCallbacks({&testable, &copied});
+}
+
+TEST_CASE("Move constructing class exposing MemberSlot should update callback to new instance") {
+    TestableSlotOwner testable;
+
+    Signal<> signal;
+    signal.connect(testable.trigger);
+
+    TestableSlotOwner moved(std::move(testable));
+
+    signal.emit();
+
+    TestableSlotOwner::requireCallbacks({&moved});
+}
+
+TEST_CASE("Move assigning class exposing MemberSlot should update callback to new instance") {
+    TestableSlotOwner testable;
+
+    Signal<> signal;
+    signal.connect(testable.trigger);
+
+    TestableSlotOwner moved;
+    moved = std::move(testable);
+
+    signal.emit();
+
+    TestableSlotOwner::requireCallbacks({&moved});
 }
