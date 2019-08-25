@@ -34,7 +34,7 @@ namespace ass {
     class Signal;
 
     template<typename... Args>
-    class Slot final {
+    class Slot {
 
         friend class Signal<Args...>;
 
@@ -140,9 +140,11 @@ namespace ass {
             }
         }
 
-    private:
+    protected:
 
         std::function<void(Args...)> callback;
+
+    private:
 
         mutable std::vector<Signal<Args...> *> signals;
 
@@ -279,6 +281,62 @@ namespace ass {
 
         std::vector<const Slot<Args...> *> slots;
 
+    };
+
+    template<typename T, typename... Args>
+    class MemberSlot : public Slot<Args...> {
+    public:
+
+        MemberSlot(T *instance, void (T::*function)(Args...))
+                : Slot<Args...>(buildCallback()), instance(instance), function(function) {}
+
+        MemberSlot(const MemberSlot &other) : Slot<Args...>(other) {
+            this->callback = std::move(buildCallback(&other));
+        }
+
+        MemberSlot &operator=(const MemberSlot &other) {
+            Slot<Args...>::operator=(other);
+            this->callback = std::move(buildCallback(&other));
+            return *this;
+        }
+
+        MemberSlot(MemberSlot &&other) noexcept : Slot<Args...>(std::move(other)) {
+            this->callback = std::move(buildCallback(&other));
+        }
+
+        MemberSlot &operator=(MemberSlot &&other) noexcept {
+            Slot<Args...>::operator=(std::move(other));
+            this->callback = std::move(buildCallback(&other));
+            return *this;
+        }
+
+    private:
+
+        std::function<void(Args...)> buildCallback(const MemberSlot *other = nullptr) {
+            if (other) { calculateCallbackPointersFrom(other); }
+            return [=](Args... args) { (instance->*function)(args...); };
+        }
+
+        void calculateCallbackPointersFrom(const MemberSlot *other) {
+            auto offsetInBytes = bytePtr(this) - bytePtr(other);
+            instance = reinterpret_cast<T *>(bytePtr(other->instance) + offsetInBytes);
+            function = other->function;
+        }
+
+        template<typename X>
+        unsigned char *bytePtr(X *p) noexcept {
+            return reinterpret_cast<unsigned char *>(p);
+        }
+
+        template<typename X>
+        const unsigned char *bytePtr(const X *p) noexcept {
+            return reinterpret_cast<const unsigned char *>(p);
+        }
+
+    private:
+        T *instance = nullptr;
+
+        void (T::*function)(Args...) = nullptr;
     };
 
 }
