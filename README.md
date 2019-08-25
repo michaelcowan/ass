@@ -48,7 +48,7 @@ private:
 class Popup {
 public:
 
-    const Slot<> show = Slot(this, &Popup::render);
+    const Slot<> show = Slot<>(this, &Popup::render);
 
 private:
     void render() { }
